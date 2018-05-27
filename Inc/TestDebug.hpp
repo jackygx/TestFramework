@@ -42,23 +42,27 @@
 	TEST_INFO(COLOR_RED, __VA_ARGS__);
 
 #ifdef SHOW_TEST_CASE
-#define DEFINE_TEST_CASE(name) \
-	static auto TestCase##name(int iStep = 1, const char *topic = #name)
-#define TEST_STEP(desc) \
-	TEST_INFO(COLOR_CYAN, topic, "[", DEC(iStep++, 2, '0'), "]: ", desc)
-#else
-#define DEFINE_TEST_CASE(name)
-#define TEST_STEP(desc)
-#endif
+#define DEFINE_TEST_GROUP(name) static auto TestCase##name(int &iStep, const char *topic = #name)
+#define TEST_CASE(desc)			TEST_INFO(COLOR_CYAN, topic, "[", DEC(++iStep, 2, '0'), "]: ", desc);
+#else /* !SHOW_TEST_CASE */
+#define DEFINE_TEST_GROUP(name) static auto TestCase##name(int &iStep)
+#define TEST_CASE(desc)			++iStep;
+#endif /* SHOW_TEST_CASE */
 
-#define RUN_TEST_CASE(name) TestCase##name()
-
-
-
-#define DO_TEST(func, ...) \
+#define START_TEST() int iTestCases = 0;
+#define RUN_TEST_GROUP(name) \
 	do { \
-		TEST_CASE(COLOR_YELLOW "================= Start testing " #func " ================="); \
-		func(__VA_ARGS__); \
+		int i = 0; \
+		TestCase##name(i); \
+		iTestCases += i; \
+	} while (0)
+#define STOP_TEST() \
+	TEST_PASSED(DEC(iTestCases), " test cases passed") \
+
+#define RUN_TEST(func, ...) \
+	do { \
+		TEST_INFO(COLOR_YELLOW, "================= Start testing " #func " ================="); \
+		func(##__VA_ARGS__); \
 	} while (0)
 
 #define CHECK(cond, ...) \
