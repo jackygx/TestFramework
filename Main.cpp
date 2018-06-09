@@ -47,9 +47,10 @@ static void Start(const CConstStringPtr &path)
 			try {
 				fn();
 				TEST_PASSED(name, " test passed!!!");
-			} catch (const IException &e) {
+			} catch (const IException *e) {
 				TEST_FAILED(name, " test failed!!!");
-				e.Show();
+				e->Show();
+				delete e;
 			}
 		})->Catch([&](void) {
 			TEST_DEBUG(name, " is not a test lib\n");
@@ -77,8 +78,9 @@ int main(int argc, char *argv[])
 		} else {
 			Start(parser.GetKeyArg('p', 0));
 		}
-	} catch (const IException &e) {
-		e.Show();
+	} catch (const IException *e) {
+		e->Show();
+		delete e;
 	} catch (...) {
 		TRACE_ERROR("Unknown error!!!");
 	}
